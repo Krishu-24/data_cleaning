@@ -8,32 +8,34 @@ def clean_numbers(df):
         tel = str(row['Telephone']) if not pd.isna(row['Telephone']) else ''
         contact = str(row['Contact person -Telephone']) if not pd.isna(row['Contact person -Telephone']) else ''
 
-        # Remove unwanted characters
         for target in ['+91', '-', ' ']:
             tel = tel.replace(target, '')
             contact = contact.replace(target, '')
 
-        # Remove anything in brackets
+        # Remove bracket content
         if '(' in tel and ')' in tel:
             tel = tel.split('(')[0]
         if '(' in contact and ')' in contact:
             contact = contact.split('(')[0]
 
-        # Flag checks
-        is_flagged = False
-        if any(c in tel for c in ['(', ')', '/']) or not tel.isdigit() or len(tel) != 10:
-            is_flagged = True
-        if any(c in contact for c in ['(', ')', '/']) or not contact.isdigit() or len(contact) != 10:
-            is_flagged = True
+        tel = tel.strip()
+        contact = contact.strip()
 
-        # Assign cleaned values
+        # Check validity
+        tel_invalid = not tel.isdigit() or len(tel) != 10 or any(c in tel for c in ['/', '(', ')'])
+        contact_invalid = not contact.isdigit() or len(contact) != 10 or any(c in contact for c in ['/', '(', ')'])
+        contact_exists = contact != ''
+
+        # Clear contact if same and not flagged
+        if tel == contact and not contact_invalid:
+            contact = ''
+            contact_exists = False
+
+        # Apply cleaned
         df.at[index, 'Telephone'] = tel
         df.at[index, 'Contact person -Telephone'] = contact
 
-        # Clear contact if same as tel and not flagged
-        if tel == contact and not is_flagged:
-            df.at[index, 'Contact person -Telephone'] = ''
-
+        is_flagged = tel_invalid or (contact_exists and contact_invalid)
         flagged.append('flagged' if is_flagged else '')
 
     df['Flagged'] = flagged
@@ -48,17 +50,17 @@ def clean_names(df):
         first = first.strip()
         last = last.strip()
 
-        lowered = first.lower()
+        lowered = first.lower().replace(' ', '')  # normalize for checking
 
-        # If full first name is "mr" or "mr." → shift last to first
         if lowered in ['mr', 'mr.']:
             first = last
             last = ''
         else:
-            # Remove prefix if it starts with Mr, Mr., Mrs, mrs.
-            for prefix in ['mr. ', 'mr ', 'mrs. ', 'mrs ']:
+            prefixes = ['mr.', 'mr', 'mrs.', 'mrs']
+            for prefix in prefixes:
                 if lowered.startswith(prefix):
-                    first = first[len(prefix):]
+                    cleaned = first.lower().replace(prefix, '', 1).lstrip()
+                    first = cleaned.capitalize()
                     break
 
         df.at[index, 'Contact person -First name'] = first
@@ -70,8 +72,8 @@ def clean_names(df):
 def clean_city_names(df):
     for index, row in df.iterrows():
         city = str(row['City']) if not pd.isna(row['City']) else ''
-
         clean_city = ''
+
         for char in city:
             if char.isalpha():
                 clean_city += char
