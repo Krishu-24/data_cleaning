@@ -93,6 +93,7 @@ def main():
     df = pd.read_excel(file_path)
 
     df = clean_numbers(df)
+    print(df['Flagged'].str.lower().eq('flagged').sum())
     df = clean_names(df)
     df = clean_city_names(df)
 
