@@ -1,6 +1,6 @@
 import pandas as pd
 
-# ---------- 1. Clean Numbers Function ----------
+# ---------- 1. Clean Numbers ----------
 def clean_numbers(df):
     flagged = []
 
@@ -13,20 +13,20 @@ def clean_numbers(df):
             tel = tel.replace(target, '')
             contact = contact.replace(target, '')
 
-        # Remove bracket content if any
+        # Remove anything in brackets
         if '(' in tel and ')' in tel:
             tel = tel.split('(')[0]
         if '(' in contact and ')' in contact:
             contact = contact.split('(')[0]
 
-        # Check for flags
+        # Flag checks
         is_flagged = False
         if any(c in tel for c in ['(', ')', '/']) or not tel.isdigit() or len(tel) != 10:
             is_flagged = True
         if any(c in contact for c in ['(', ')', '/']) or not contact.isdigit() or len(contact) != 10:
             is_flagged = True
 
-        # Update cleaned values
+        # Assign cleaned values
         df.at[index, 'Telephone'] = tel
         df.at[index, 'Contact person -Telephone'] = contact
 
@@ -39,27 +39,38 @@ def clean_numbers(df):
     df['Flagged'] = flagged
     return df
 
-# ---------- 2. Clean Names Function ----------
+# ---------- 2. Clean Names ----------
 def clean_names(df):
     for index, row in df.iterrows():
         first = str(row['Contact person -First name']) if not pd.isna(row['Contact person -First name']) else ''
         last = str(row['Contact person -Last name']) if not pd.isna(row['Contact person -Last name']) else ''
 
-        if first.strip().lower() in ['mr', 'mr.']:
-            df.at[index, 'Contact person -First name'] = last
-            df.at[index, 'Contact person -Last name'] = ''
+        first = first.strip()
+        last = last.strip()
+
+        lowered = first.lower()
+
+        # If full first name is "mr" or "mr." → shift last to first
+        if lowered in ['mr', 'mr.']:
+            first = last
+            last = ''
         else:
-            df.at[index, 'Contact person -First name'] = first
-            df.at[index, 'Contact person -Last name'] = last
+            # Remove prefix if it starts with Mr, Mr., Mrs, mrs.
+            for prefix in ['mr. ', 'mr ', 'mrs. ', 'mrs ']:
+                if lowered.startswith(prefix):
+                    first = first[len(prefix):]
+                    break
+
+        df.at[index, 'Contact person -First name'] = first
+        df.at[index, 'Contact person -Last name'] = last
 
     return df
 
-# ---------- 3. Clean City Function ----------
+# ---------- 3. Clean City ----------
 def clean_city_names(df):
     for index, row in df.iterrows():
         city = str(row['City']) if not pd.isna(row['City']) else ''
 
-        # Keep only leading letters
         clean_city = ''
         for char in city:
             if char.isalpha():
@@ -67,7 +78,6 @@ def clean_city_names(df):
             else:
                 break
 
-        # Capitalize first letter
         if clean_city:
             clean_city = clean_city[0].upper() + clean_city[1:].lower()
 
@@ -75,7 +85,7 @@ def clean_city_names(df):
 
     return df
 
-# ---------- 4. Main Execution ----------
+# ---------- 4. Main ----------
 def main():
     file_path = "C:/Users/krish/Downloads/Customer_list_06102025063059.xlsx"
     df = pd.read_excel(file_path)
