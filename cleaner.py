@@ -44,3 +44,36 @@ df.loc[mask, 'Contact person - Telephone'] = ''
 df.to_excel('cleaned_excel_file.xlsx', index=False)
 
 print("✨ File cleaned and saved with flagged rows and cleaned columns.")
+
+
+[Running] python -u "c:\Users\krish\Desktop\cleaner.py"
+Traceback (most recent call last):
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python39\lib\site-packages\pandas\compat\_optional.py", line 135, in import_optional_dependency
+    module = importlib.import_module(name)
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python39\lib\importlib\__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'openpyxl'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\krish\Desktop\cleaner.py", line 6, in <module>
+    df = pd.read_excel(file_path)
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python39\lib\site-packages\pandas\io\excel\_base.py", line 495, in read_excel
+    io = ExcelFile(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python39\lib\site-packages\pandas\io\excel\_base.py", line 1567, in __init__
+    self._reader = self._engines[engine](
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python39\lib\site-packages\pandas\io\excel\_openpyxl.py", line 552, in __init__
+    import_optional_dependency("openpyxl")
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python39\lib\site-packages\pandas\compat\_optional.py", line 138, in import_optional_dependency
+    raise ImportError(msg)
+ImportError: Missing optional dependency 'openpyxl'.  Use pip or conda to install openpyxl.
+
+[Done] exited with code=1 in 1.257 seconds
+
+
+
+
